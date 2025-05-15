@@ -1,0 +1,14 @@
+{
+  "name": "starbaba",
+  "version": "0.1.0",
+  "description": "Personal subscription management app",
+  "main": "app/static/js/main.js",
+  "scripts": {
+    "tailwind:css": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.0.0" 
+  },
+  "author": "",
+  "license": "ISC"
+} 

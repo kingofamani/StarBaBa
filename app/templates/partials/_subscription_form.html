@@ -1,0 +1,93 @@
+<div class="space-y-4">
+    <div>
+        <label for="serviceName" class="block text-sm font-medium text-gray-700">服務名稱 <span class="text-red-500">*</span></label>
+        <input type="text" name="serviceName" id="serviceName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        <select id="predefinedServices" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">或選擇預設服務...</option>
+            <!-- 選項將由 JS 填充 -->
+        </select>
+    </div>
+
+    <div>
+        <label for="serviceIcon" class="block text-sm font-medium text-gray-700">服務圖示路徑 (選填)</label>
+        <input type="text" name="serviceIcon" id="serviceIcon" placeholder="例如: images/custom.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+    </div>
+
+    <div>
+        <label for="tags" class="block text-sm font-medium text-gray-700">標籤 (可多選，按住 Ctrl/Cmd 選擇)</label>
+        <select name="tags" id="tags" multiple class="mt-1 block w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <!-- 選項將由 JS 填充 -->
+        </select>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="startDate" class="block text-sm font-medium text-gray-700">開始日期 <span class="text-red-500">*</span></label>
+            <input type="date" name="startDate" id="startDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+            <label for="billingCycle" class="block text-sm font-medium text-gray-700">付款週期 <span class="text-red-500">*</span></label>
+            <select name="billingCycle" id="billingCycle" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <!-- 選項將由 JS 填充 -->
+            </select>
+        </div>
+    </div>
+
+    <!-- 週期性付款詳情 (例如每月幾號)，可依據 billingCycle 動態顯示 -->
+    <div id="billingDetailsContainer" class="space-y-2">
+        <!-- JS 會根據 billingCycle 決定是否顯示 dayOfMonth 或 dateOfYear 輸入框 -->
+        <div id="dayOfMonthInputGroup" style="display: none;">
+            <label for="billingDayOfMonth" class="block text-sm font-medium text-gray-700">每月扣款日 (1-31)</label>
+            <input type="number" name="billingDetails.dayOfMonth" id="billingDayOfMonth" min="1" max="31" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div id="dateOfYearInputGroup" style="display: none;">
+            <label for="billingDateOfYear" class="block text-sm font-medium text-gray-700">每年扣款日期 (MM-DD)</label>
+            <input type="text" name="billingDetails.dateOfYear" id="billingDateOfYear" placeholder="MM-DD" pattern="^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="price" class="block text-sm font-medium text-gray-700">價格 <span class="text-red-500">*</span></label>
+            <input type="number" name="price" id="price" step="any" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+            <label for="currency" class="block text-sm font-medium text-gray-700">貨幣 <span class="text-red-500">*</span></label>
+            <select name="currency" id="currency" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <!-- 選項將由 JS 填充 -->
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <label for="paymentMethod" class="block text-sm font-medium text-gray-700">付款方式</label>
+        <select name="paymentMethod" id="paymentMethod" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">請選擇...</option>
+            <!-- 選項將由 JS 填充 -->
+        </select>
+    </div>
+    
+    <!-- 付款詳情 (示意) -->
+    <div id="paymentDetailsContainer" class="space-y-2" style="display: none;">
+         <div>
+            <label for="paymentCardLastFour" class="block text-sm font-medium text-gray-700">卡號末四碼 (選填)</label>
+            <input type="text" name="paymentDetails.cardLastFour" id="paymentCardLastFour" maxlength="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+         <div>
+            <label for="paymentCardBank" class="block text-sm font-medium text-gray-700">發卡銀行 (選填)</label>
+            <input type="text" name="paymentDetails.cardBank" id="paymentCardBank" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+    </div>
+
+    <div>
+        <label for="notes" class="block text-sm font-medium text-gray-700">備註 (選填)</label>
+        <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+    </div>
+
+    <div>
+        <label for="isActive" class="flex items-center">
+            <input type="checkbox" name="isActive" id="isActive" checked class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+            <span class="ml-2 text-sm text-gray-700">啟用此訂閱</span>
+        </label>
+    </div>
+</div> 

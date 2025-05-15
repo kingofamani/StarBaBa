@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}我的訂閱 - StarBaBa{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* 可以在此處為 modal 或特定元素添加額外樣式 */
+    .modal {
+        display: none; /* 預設隱藏 */
+        position: fixed; 
+        z-index: 1000; 
+        left: 0;
+        top: 0;
+        width: 100%; 
+        height: 100%; 
+        overflow: auto; 
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto; 
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 8px;
+    }
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+
+    <!-- 統計區域 -->
+    <section id="stats-section" class="mb-8 p-6 bg-white shadow-lg rounded-lg">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">我的支出概要</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+                <p class="text-gray-600">總月費:</p>
+                <p id="stats-monthly-cost" class="text-xl font-bold text-green-600">NT$ 0</p>
+            </div>
+            <div>
+                <p class="text-gray-600">總年費:</p>
+                <p id="stats-yearly-cost" class="text-xl font-bold text-green-600">NT$ 0</p>
+            </div>
+            <div>
+                <p class="text-gray-600">活躍訂閱數:</p>
+                <p id="stats-active-count" class="text-xl font-bold">0</p>
+            </div>
+        </div>
+        <div id="stats-equivalency" class="mt-4 pt-4 border-t">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">月費約等於...</h3>
+            <!-- 商品換算結果將由 JS 動態填入 -->
+            <p class="text-sm text-gray-500 italic">正在載入商品換算...</p>
+        </div>
+    </section>
+
+    <!-- 操作按鈕 -->
+    <div class="mb-6 flex justify-end">
+        <button id="add-subscription-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+            新增訂閱
+        </button>
+    </div> 
+
+    <!-- 訂閱列表區域 -->
+    <section id="subscription-list-section">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">我的訂閱列表</h2>
+        <div id="subscription-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 訂閱項目將由 JS 動態填入 -->
+            <p class="text-gray-500 italic col-span-full">正在載入訂閱項目...</p>
+        </div>
+    </section>
+
+    <!-- 新增/編輯訂閱表單 Modal -->
+    <div id="subscription-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-modal-btn">&times;</span>
+            <h3 id="modal-title" class="text-xl font-semibold mb-4">新增訂閱</h3>
+            <form id="subscription-form">
+                <input type="hidden" id="subscription-id" name="id">
+                <!-- 表單內容將由 _subscription_form.html 引入 (或由 JS 動態生成) -->
+                <div id="form-fields-container">
+                    {% include 'partials/_subscription_form.html' %}
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancel-form-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        取消
+                    </button>
+                    <button type="submit" id="save-form-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        儲存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+    <!-- 可以加入此頁面特定的 JS 檔案或 inline script -->
+    <script>
+        // 這裡可以放一些不適合放在 main.js 的、僅此頁面使用的簡單 UI 互動
+        // 例如 Modal 的開關邏輯，雖然 main.js 也會處理，但基礎的顯示/隱藏可以先在這裡準備好
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('subscription-modal');
+            const addBtn = document.getElementById('add-subscription-btn');
+            const closeBtn = document.getElementById('close-modal-btn');
+            const cancelBtn = document.getElementById('cancel-form-btn');
+
+            function openModal() {
+                document.getElementById('modal-title').textContent = '新增訂閱';
+                document.getElementById('subscription-form').reset(); // 清空表單
+                document.getElementById('subscription-id').value = ''; // 清除可能存在的 ID
+                modal.style.display = 'block';
+            }
+
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+
+            if(addBtn) addBtn.addEventListener('click', openModal);
+            if(closeBtn) closeBtn.addEventListener('click', closeModal);
+            if(cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+            // 點擊 Modal 外部區域關閉 Modal
+            window.addEventListener('click', (event) => {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+{% endblock %} 

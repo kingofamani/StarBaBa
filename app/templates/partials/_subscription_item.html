@@ -1,0 +1,49 @@
+<div class="bg-white shadow-md rounded-lg p-6 subscription-card transform hover:scale-105 transition-transform duration-300 ease-in-out" data-id="{{ id }}">
+    <div class="flex items-center mb-4">
+        <img src="{{ icon_url if icon_url else url_for('static', filename='images/default_icon.svg') }}" alt="{{ serviceName }}" class="w-12 h-12 mr-4 rounded-full object-contain p-1 border" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default_icon.svg') }}';">
+        <div>
+            <h3 class="text-xl font-semibold text-gray-800">{{ serviceName }}</h3>
+            <p class="text-sm text-gray-500">{{ tags|join(', ') if tags else '無標籤' }}</p>
+        </div>
+    </div>
+
+    <div class="space-y-2 text-sm mb-4">
+        <p><span class="font-medium text-gray-600">價格:</span> <span class="font-bold text-green-600">{{ currency_symbol }}{{ price }}</span> / {{ billing_cycle_label }}</p>
+        <p><span class="font-medium text-gray-600">開始日期:</span> {{ startDate }}</p>
+        {% if billingCycle == 'monthly' and billingDetails and billingDetails.dayOfMonth %}
+            <p><span class="font-medium text-gray-600">每月扣款日:</span> 第 {{ billingDetails.dayOfMonth }} 天</p>
+        {% elif billingCycle == 'yearly' and billingDetails and billingDetails.dateOfYear %}
+            <p><span class="font-medium text-gray-600">每年扣款日:</span> {{ billingDetails.dateOfYear }}</p>
+        {% endif %}
+        <p><span class="font-medium text-gray-600">付款方式:</span> {{ payment_method_label if payment_method_label else '未指定' }}</p>
+        {% if paymentDetails and paymentDetails.cardLastFour %}
+            <p><span class="font-medium text-gray-600">卡號末四碼:</span> {{ paymentDetails.cardLastFour }}</p>
+        {% endif %}
+        {% if paymentDetails and paymentDetails.cardBank %}
+            <p><span class="font-medium text-gray-600">發卡銀行:</span> {{ paymentDetails.cardBank }}</p>
+        {% endif %}
+        {% if notes %}
+            <p><span class="font-medium text-gray-600">備註:</span> <span class="text-gray-700">{{ notes|truncate(50, True) }}</span></p>
+        {% endif %}
+        <p><span class="font-medium text-gray-600">狀態:</span> 
+            <span class="{{ 'text-green-500' if isActive else 'text-red-500' }} font-semibold">
+                {{ '啟用中' if isActive else '已停用' }}
+            </span>
+        </p>
+    </div>
+
+    <div class="flex justify-end space-x-2 border-t pt-4 mt-4">
+        <button class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline"
+                data-id="{{ id }}">
+            編輯
+        </button>
+        <button class="delete-btn bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline"
+                data-id="{{ id }}" data-name="{{ serviceName }}">
+            刪除
+        </button>
+    </div>
+    <div class="text-xs text-gray-400 mt-2 text-right">
+        <p>ID: {{ id[:8] }}...</p>
+        <p>更新於: {{ updatedAt_formatted }}</p>
+    </div>
+</div> 

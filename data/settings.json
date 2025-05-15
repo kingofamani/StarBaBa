@@ -1,0 +1,31 @@
+{
+  "appName": "StarBaBa",
+  "predefinedServices": [
+    { "name": "Netflix", "icon": "images/netflix.svg", "defaultTags": ["影視類"] },
+    { "name": "Spotify", "icon": "images/spotify.svg", "defaultTags": ["音樂類"] }
+  ],
+  "availableTags": [
+    "影視類", "AI類", "美工類", "音樂類", "遊戲類", "生產力工具", "雲端儲存", "新聞/雜誌類", "學習/教育類", "健康/健身類", "軟體開發/技術類", "生活服務類", "其他"
+  ],
+  "billingCycles": [
+    { "value": "monthly", "label": "月繳" },
+    { "value": "yearly", "label": "年繳" },
+    { "value": "lifetime", "label": "終身" },
+    { "value": "onetime", "label": "單次購買" }
+  ],
+  "currencies": [
+    { "code": "TWD", "symbol": "NT$", "name": "新台幣" },
+    { "code": "USD", "symbol": "$", "name": "美元" }
+  ],
+  "paymentMethods": [
+    { "value": "credit_card", "label": "信用卡" },
+    { "value": "line_pay", "label": "LINE Pay" },
+    { "value": "paypal", "label": "PayPal" }
+  ],
+  "equivalencyItems": [
+    { "id": "starbucks_ame", "name": "星巴克美式 (大杯)", "price": 120, "unit": "杯", "currency": "TWD" },
+    { "id": "711_ame", "name": "7-11美式 (大杯)", "price": 45, "unit": "杯", "currency": "TWD" },
+    { "id": "big_mac", "name": "大麥克", "price": 75, "unit": "個", "currency": "TWD" }
+  ],
+  "defaultCurrency": "TWD"
+} 
