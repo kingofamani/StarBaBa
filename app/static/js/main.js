@@ -238,89 +238,67 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderStatistics(stats) {
         console.log('renderStatistics called with data:', stats, 'Targeting element:', statsEquivalencyEl);
         if (statsEquivalencyEl) {
+            // 月費換算
             if (stats.equivalency && stats.equivalency.length > 0) {
-                console.log('Rendering equivalency items:', stats.equivalency);
-
-                let html = '<p class="text-sm text-gray-600 dark:text-gray-400">您的總月費約可換算成：</p><ul class="mt-2 space-y-3 max-w-full">';
-
+                console.log('Rendering monthly equivalency items:', stats.equivalency);
+                let monthlyHtml = '<p class="text-sm text-gray-600 dark:text-gray-400">您的總月費約可換算成：</p><ul class="mt-2 space-y-3 max-w-full">';
                 stats.equivalency.forEach((item, index) => {
-                    // item.count 已經是後端 round(float, 2) 過的數字
-                    // item.countInt 是後端 int(float) 過的整數
-                    const itemId = `equiv-item-${index}`;
-
-                    html += `<li class="w-full flex flex-col items-start py-3 pr-3 pl-0 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm">
+                    const itemId = `monthly-equiv-item-${index}`;
+                    monthlyHtml += `<li class="w-full flex flex-col items-start py-3 pr-3 pl-0 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm">
                                 <div class="text-md font-medium text-gray-800 dark:text-gray-200 mb-2">
                                     ${item.count.toFixed(2)} ${item.unit} ${item.itemName}
                                 </div>`;
-
                     if (item.imagePath && item.countInt > 0) {
-                        // 外層容器
-                        html += '<div class="w-full mt-1">';
-                        
-                        // 第一行：固定顯示最多10個圖示
-                        const firstRowCount = Math.min(item.countInt, 10); 
-                        html += '<div class="flex flex-wrap gap-1 mb-1">';
-                        
+                        monthlyHtml += '<div class="w-full mt-1">';
+                        const firstRowCount = Math.min(item.countInt, 10);
+                        monthlyHtml += '<div class="flex flex-wrap gap-1 mb-1">';
                         for (let i = 0; i < firstRowCount; i++) {
-                            html += `<img 
+                            monthlyHtml += `<img 
                                 src="/${item.imagePath.startsWith('static/') ? '' : 'static/'}${item.imagePath}" 
                                 alt="${item.imageUnit || item.itemName}" 
                                 class="h-6 w-6 object-contain" 
                                 title="${item.itemName}">`;
                         }
-                        
                         if (item.countInt > 10) {
-                            html += `<button id="toggle-${itemId}" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none ml-1" data-expanded="false">
+                            monthlyHtml += `<button id="toggle-${itemId}" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none ml-1" data-expanded="false">
                                         顯示全部(${item.countInt})
                                     </button>`;
                         }
-                        
-                        html += '</div>';
-                        
-                        // 如果有更多圖示，創建可折疊區域
+                        monthlyHtml += '</div>';
                         if (item.countInt > 10) {
-                            html += `<div id="${itemId}" class="hidden mt-2">`;
-                            
-                            // 處理剩餘的圖示，每10個一組，最多到總共50個
-                            const startIndexForExpansion = 10; // 從第11個圖示開始
-                            const maxTotalImagesToShow = 50;   // 總共最多顯示50個圖示 (10個初始 + 40個展開)
+                            monthlyHtml += `<div id="${itemId}" class="hidden mt-2">`;
+                            const startIndexForExpansion = 10;
+                            const maxTotalImagesToShow = 50;
                             const endIndexForExpansion = Math.min(item.countInt, maxTotalImagesToShow);
-
                             for (let i = startIndexForExpansion; i < endIndexForExpansion; i += 10) {
-                                html += '<div class="flex flex-wrap gap-1 mb-1">'; // 每10個圖示一組新的div
+                                monthlyHtml += '<div class="flex flex-wrap gap-1 mb-1">';
                                 const endOfCurrentChunk = Math.min(i + 10, endIndexForExpansion);
                                 for (let j = i; j < endOfCurrentChunk; j++) {
-                                    html += `<img 
+                                    monthlyHtml += `<img 
                                         src="/${item.imagePath.startsWith('static/') ? '' : 'static/'}${item.imagePath}" 
                                         alt="${item.imageUnit || item.itemName}" 
                                         class="h-6 w-6 object-contain" 
                                         title="${item.itemName}">`;
                                 }
-                                html += '</div>'; // 結束這一組10個圖示的div
+                                monthlyHtml += '</div>';
                             }
-                            
                             if (item.countInt > maxTotalImagesToShow) {
-                                html += '<span class="text-xs text-gray-500 dark:text-gray-300 self-center ml-1">...等</span>';
+                                monthlyHtml += '<span class="text-xs text-gray-500 dark:text-gray-300 self-center ml-1">...等</span>';
                             }
-                            
-                            html += '</div>'; // 結束可折疊區域的div
+                            monthlyHtml += '</div>';
                         }
-                        
-                        html += '</div>';  // 結束外層容器
+                        monthlyHtml += '</div>';
                     }
-                    html += '</li>';
+                    monthlyHtml += '</li>';
                 });
+                monthlyHtml += '</ul>';
+                statsEquivalencyEl.innerHTML = monthlyHtml;
 
-                html += '</ul>';
-                statsEquivalencyEl.innerHTML = html;
-                
-                // 添加展開/收合按鈕的事件處理
                 stats.equivalency.forEach((item, index) => {
                     if (item.countInt > 10) {
-                        const itemId = `equiv-item-${index}`;
+                        const itemId = `monthly-equiv-item-${index}`;
                         const toggleBtn = document.getElementById(`toggle-${itemId}`);
                         const contentDiv = document.getElementById(itemId);
-                        
                         if (toggleBtn && contentDiv) {
                             toggleBtn.addEventListener('click', function() {
                                 const isExpanded = this.getAttribute('data-expanded') === 'true';
@@ -338,11 +316,98 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             } else {
-                console.log('No equivalency items to render, or stats.equivalency is empty.');
-                statsEquivalencyEl.innerHTML = '<p class="text-sm text-gray-600 dark:text-gray-400">目前無換算資料。</p>';
+                console.log('No monthly equivalency items to render.');
+                statsEquivalencyEl.innerHTML = '<p class="text-sm text-gray-600 dark:text-gray-400">目前無月費換算資料。</p>';
             }
         } else {
             console.error('renderStatistics: statsEquivalencyEl is not defined!');
+        }
+
+        // 年費換算 iPhone
+        const yearlyEquivalencyContainer = document.getElementById('stats-yearly-equivalency-container');
+        if (yearlyEquivalencyContainer) {
+            const item = stats.yearly_iphone_equivalency;
+            // 條件修改：只要 count > 0 就顯示文字，countInt > 0 才處理圖片
+            if (item && item.count > 0) { 
+                console.log('Rendering yearly iPhone equivalency:', item);
+                let yearlyHtml = '<p class="text-sm text-gray-600 dark:text-gray-400">您的總年費約可換算成：</p><ul class="mt-2 space-y-3 max-w-full">';
+                const itemId = 'yearly-iphone-equiv-item';
+
+                yearlyHtml += `<li class="w-full flex flex-col items-start py-3 pr-3 pl-0 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm">
+                            <div class="text-md font-medium text-gray-800 dark:text-gray-200 mb-2">
+                                ${item.count.toFixed(2)} ${item.unit} ${item.itemName}
+                            </div>`;
+                
+                // 只有當 countInt > 0 時才顯示圖片和展開按鈕
+                if (item.imagePath && item.countInt > 0) {
+                    yearlyHtml += '<div class="w-full mt-1">';
+                    const firstRowCount = Math.min(item.countInt, 10);
+                    yearlyHtml += '<div class="flex flex-wrap gap-1 mb-1">';
+                    for (let i = 0; i < firstRowCount; i++) {
+                        yearlyHtml += `<img 
+                            src="/${item.imagePath.startsWith('static/') ? '' : 'static/'}${item.imagePath}" 
+                            alt="${item.imageUnit || item.itemName}" 
+                            class="h-6 w-6 object-contain" 
+                            title="${item.itemName}">`;
+                    }
+                    if (item.countInt > 10) {
+                        yearlyHtml += `<button id="toggle-${itemId}" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none ml-1" data-expanded="false">
+                                    顯示全部(${item.countInt})
+                                </button>`;
+                    }
+                    yearlyHtml += '</div>'; // 結束第一行圖片的 div
+                    if (item.countInt > 10) {
+                        yearlyHtml += `<div id="${itemId}" class="hidden mt-2">`;
+                        const startIndexForExpansion = 10;
+                        const maxTotalImagesToShow = 50;
+                        const endIndexForExpansion = Math.min(item.countInt, maxTotalImagesToShow);
+                        for (let i = startIndexForExpansion; i < endIndexForExpansion; i += 10) {
+                            yearlyHtml += '<div class="flex flex-wrap gap-1 mb-1">';
+                            const endOfCurrentChunk = Math.min(i + 10, endIndexForExpansion);
+                            for (let j = i; j < endOfCurrentChunk; j++) {
+                                yearlyHtml += `<img 
+                                    src="/${item.imagePath.startsWith('static/') ? '' : 'static/'}${item.imagePath}" 
+                                    alt="${item.imageUnit || item.itemName}" 
+                                    class="h-6 w-6 object-contain" 
+                                    title="${item.itemName}">`;
+                            }
+                            yearlyHtml += '</div>'; // 結束這一組10個圖片的div
+                        }
+                        if (item.countInt > maxTotalImagesToShow) {
+                            yearlyHtml += '<span class="text-xs text-gray-500 dark:text-gray-300 self-center ml-1">...等</span>';
+                        }
+                        yearlyHtml += '</div>'; // 結束可折疊區域的div
+                    }
+                    yearlyHtml += '</div>'; // 結束 w-full mt-1 的 div
+                } // 結束 if (item.imagePath && item.countInt > 0)
+                yearlyHtml += '</li></ul>';
+                yearlyEquivalencyContainer.innerHTML = yearlyHtml;
+
+                // 綁定展開按鈕事件 (只有在 countInt > 10 時按鈕才存在)
+                if (item.imagePath && item.countInt > 10) {
+                    const toggleBtn = document.getElementById(`toggle-${itemId}`);
+                    const contentDiv = document.getElementById(itemId);
+                    if (toggleBtn && contentDiv) {
+                        toggleBtn.addEventListener('click', function() {
+                            const isExpanded = this.getAttribute('data-expanded') === 'true';
+                            if (isExpanded) {
+                                contentDiv.classList.add('hidden');
+                                this.textContent = `顯示全部(${item.countInt})`;
+                                this.setAttribute('data-expanded', 'false');
+                            } else {
+                                contentDiv.classList.remove('hidden');
+                                this.textContent = '收合';
+                                this.setAttribute('data-expanded', 'true');
+                            }
+                        });
+                    }
+                }
+            } else {
+                console.log('No yearly iPhone equivalency item to render or count is zero.');
+                yearlyEquivalencyContainer.innerHTML = '<p class="text-sm text-gray-600 dark:text-gray-400">目前無年費換算資料。</p>';
+            }
+        } else {
+            console.error('renderStatistics: stats-yearly-equivalency-container is not defined!');
         }
     }
 

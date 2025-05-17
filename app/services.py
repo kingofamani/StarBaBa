@@ -60,12 +60,31 @@ def calculate_statistics(subscriptions_data, settings_data):
             # else:
                 # current_app.logger.debug(f"Skipping equivalency item due to missing data, currency mismatch, or invalid price: {item}")
                 
-    return {
+    stats = {
         "totalMonthlyCost": round(total_monthly_cost, 2),
         "totalYearlyCost": round(total_yearly_cost, 2),
         "currency": default_currency,
         "activeSubscriptionsCount": len(active_subscriptions),
         "equivalency": equivalency_results # 與 routes.py 中一致的鍵名
     }
+
+    # 新增年費換算邏輯
+    yearly_target_config = settings_data.get('yearlyConversionTarget')
+    if yearly_target_config and yearly_target_config.get('price') and yearly_target_config['price'] > 0 and stats['totalYearlyCost'] > 0:
+        yearly_cost = stats['totalYearlyCost']
+        item_price = yearly_target_config['price']
+        count = yearly_cost / item_price
+        stats['yearly_iphone_equivalency'] = {
+            "itemName": yearly_target_config['itemName'],
+            "unit": yearly_target_config['unit'],
+            "count": round(count, 2),
+            "countInt": int(count),
+            "imagePath": yearly_target_config.get('imagePath', ''),
+            "imageUnit": yearly_target_config.get('imageUnit', '')
+        }
+    else:
+        stats['yearly_iphone_equivalency'] = None # 若無設定或價格無效，則設為None
+
+    return stats
 
 # 你可以在這裡加入其他服務層的函式，例如更複雜的資料分析、提醒生成等。 

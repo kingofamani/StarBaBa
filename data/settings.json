@@ -64,5 +64,12 @@
     { "id": "711_ame", "name": "7-11美式 (大杯)", "price": 45, "unit": "杯", "currency": "TWD", "imagePath": "static/images/conv/coffee711.png", "imageUnit": "☕" },
     { "id": "big_mac", "name": "大麥克", "price": 75, "unit": "個", "currency": "TWD", "imagePath": "static/images/conv/hamburger.png", "imageUnit": "🍔" }
   ],
+  "yearlyConversionTarget": {
+    "itemName": "iPhone 最新款",
+    "unit": "台",
+    "price": 9900,
+    "imagePath": "static/images/conv/iphone.png",
+    "imageUnit": "📱"
+  },
   "defaultCurrency": "TWD"
 } 
