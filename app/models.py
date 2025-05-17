@@ -4,15 +4,14 @@ from datetime import datetime, timezone
 import os
 from flask import current_app
 
-# DATA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
-# SUBSCRIPTIONS_FILE = os.path.join(DATA_DIR, 'subscriptions.json')
-# SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+# Calculate absolute paths to data files
+MODEL_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Navigates up from 'app' dir (where models.py is) to project root, then into 'data'
+PROJECT_ROOT_DIR = os.path.join(MODEL_FILE_DIR, '..')
+DATA_DIR = os.path.join(PROJECT_ROOT_DIR, 'data')
 
-# --- 使用絕對路徑進行測試 ---
-# 注意：在 Python 字串中，反斜線需要跳脫，所以用 '\\' 或 r"..."
-SUBSCRIPTIONS_FILE = r"C:\D\Vibe\StarBaBa\data\subscriptions.json"
-SETTINGS_FILE = r"C:\D\Vibe\StarBaBa\data\settings.json"
-# --- END 絕對路徑測試 ---
+SUBSCRIPTIONS_FILE = os.path.join(DATA_DIR, 'subscriptions.json')
+SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 
 # def _ensure_data_files_exist():
 #     """確保資料目錄存在。不再自動創建或覆寫資料檔案。"""
