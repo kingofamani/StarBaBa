@@ -1,8 +1,45 @@
 {
   "appName": "StarBaBa",
-  "predefinedServices": [
-    { "name": "Netflix", "icon": "images/netflix.svg", "defaultTags": ["影視類"] },
-    { "name": "Spotify", "icon": "images/spotify.svg", "defaultTags": ["音樂類"] }
+  "predefinedServices": [	
+	{ "name": "Ai", "icon": "images/ai.png", "defaultTags": ["AI", "工具"] },
+	{ "name": "Amazon", "icon": "images/amazon.png", "defaultTags": ["購物", "電商"] },
+	{ "name": "Applemusic", "icon": "images/applemusic.png", "defaultTags": ["音樂", "串流"] },
+	{ "name": "Applestore", "icon": "images/applestore.png", "defaultTags": ["購物", "蘋果"] },
+	{ "name": "Appletv", "icon": "images/appletv.png", "defaultTags": ["影視類", "蘋果"] },
+	{ "name": "Loan", "icon": "images/loan.png", "defaultTags": ["金融", "工具"] },
+	{ "name": "Bitdefendervpn", "icon": "images/bitdefendervpn.png", "defaultTags": ["VPN", "安全"] },
+	{ "name": "Phone", "icon": "images/phone.png", "defaultTags": ["通訊", "設備"] },
+	{ "name": "Charging", "icon": "images/charging.png", "defaultTags": ["設備", "工具"] },
+	{ "name": "Chatgpt", "icon": "images/chatgpt.png", "defaultTags": ["AI", "工具"] },
+	{ "name": "Cloud", "icon": "images/cloud.png", "defaultTags": ["雲端", "儲存"] },
+	{ "name": "Cloudflare", "icon": "images/cloudflare.png", "defaultTags": ["雲端", "網路", "安全"] },
+	{ "name": "Cursor", "icon": "images/cursor.png", "defaultTags": ["工具", "開發"] },
+	{ "name": "Disney", "icon": "images/disney.png", "defaultTags": ["影視類", "串流"] },
+	{ "name": "Evernote", "icon": "images/evernote.png", "defaultTags": ["筆記", "工具"] },
+	{ "name": "Foodpanda", "icon": "images/foodpanda.png", "defaultTags": ["外送", "餐飲"] },
+	{ "name": "Googleone", "icon": "images/googleone.png", "defaultTags": ["雲端", "儲存"] },
+	{ "name": "Googleplay", "icon": "images/googleplay.png", "defaultTags": ["購物", "應用程式"] },
+	{ "name": "Heroku", "icon": "images/heroku.png", "defaultTags": ["開發", "雲端"] },
+	{ "name": "Iqiyi", "icon": "images/iqiyi.png", "defaultTags": ["影視類", "串流"] },
+	{ "name": "Magazine", "icon": "images/magazine.png", "defaultTags": ["閱讀", "雜誌"] },
+	{ "name": "Midjourne", "icon": "images/midjourne.png", "defaultTags": ["AI", "影像生成"] },
+	{ "name": "Netflix", "icon": "images/netflix.png", "defaultTags": ["影視類", "串流"] },
+	{ "name": "NintendoSwitch", "icon": "images/nintendoswitch.png", "defaultTags": ["遊戲", "任天堂"] },
+	{ "name": "Notion", "icon": "images/notion.png", "defaultTags": ["筆記", "工具", "生產力"] },
+	{ "name": "Office365", "icon": "images/office365.png", "defaultTags": ["文書", "工具", "辦公"] },
+	{ "name": "Picture", "icon": "images/picture.png", "defaultTags": ["圖片", "媒體"] },
+	{ "name": "Playstation", "icon": "images/playstation.png", "defaultTags": ["遊戲", "娛樂"] },
+	{ "name": "Robot", "icon": "images/robot.png", "defaultTags": ["AI", "科技"] },
+	{ "name": "Shopee", "icon": "images/shopee.png", "defaultTags": ["購物", "電商"] },
+	{ "name": "Spotify", "icon": "images/spotify.png", "defaultTags": ["音樂", "串流"] },
+	{ "name": "Starbucks", "icon": "images/starbucks.png", "defaultTags": ["餐飲", "咖啡"] },
+	{ "name": "Autodrive", "icon": "images/autodrive.png", "defaultTags": ["車輛", "自駕"] },
+	{ "name": "Ubereat", "icon": "images/ubereat.png", "defaultTags": ["外送", "餐飲"] },
+	{ "name": "Video", "icon": "images/video.png", "defaultTags": ["影視類", "媒體"] },
+	{ "name": "Xbox", "icon": "images/xbox.png", "defaultTags": ["遊戲", "娛樂"] },
+	{ "name": "Youtube", "icon": "images/youtube.png", "defaultTags": ["影音平台", "串流"] },
+	{ "name": "Kkbox", "icon": "images/kkbox.png", "defaultTags": ["音樂", "串流"] }
+
   ],
   "availableTags": [
     "影視類", "AI類", "美工類", "音樂類", "遊戲類", "生產力工具", "雲端儲存", "新聞/雜誌類", "學習/教育類", "健康/健身類", "軟體開發/技術類", "生活服務類", "其他"
@@ -23,9 +60,9 @@
     { "value": "paypal", "label": "PayPal" }
   ],
   "equivalencyItems": [
-    { "id": "starbucks_ame", "name": "星巴克美式 (大杯)", "price": 120, "unit": "杯", "currency": "TWD" },
-    { "id": "711_ame", "name": "7-11美式 (大杯)", "price": 45, "unit": "杯", "currency": "TWD" },
-    { "id": "big_mac", "name": "大麥克", "price": 75, "unit": "個", "currency": "TWD" }
+    { "id": "starbucks_ame", "name": "星巴克美式 (大杯)", "price": 120, "unit": "杯", "currency": "TWD", "imagePath": "static/images/conv/coffeestarbucks.png", "imageUnit": "☕" },
+    { "id": "711_ame", "name": "7-11美式 (大杯)", "price": 45, "unit": "杯", "currency": "TWD", "imagePath": "static/images/conv/coffee711.png", "imageUnit": "☕" },
+    { "id": "big_mac", "name": "大麥克", "price": 75, "unit": "個", "currency": "TWD", "imagePath": "static/images/conv/hamburger.png", "imageUnit": "🍔" }
   ],
   "defaultCurrency": "TWD"
 } 

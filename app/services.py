@@ -37,17 +37,23 @@ def calculate_statistics(subscriptions_data, settings_data):
             item_price = item.get('price')
             item_currency = item.get('currency')
             item_name = item.get('name')
-            item_unit = item.get('unit', '個') # 與 routes.py 中保持一致
+            item_unit = item.get('unit', '個')
+            item_image_path = item.get('imagePath', '')
+            item_image_unit = item.get('imageUnit', '')
 
             if item_currency == default_currency and item_name and isinstance(item_price, (int, float)) and item_price > 0:
                 try:
-                    count = total_monthly_cost / float(item_price)
+                    count_float = total_monthly_cost / float(item_price)
+                    count_int = int(count_float)
                     equivalency_results.append({
                         "itemName": item_name,
-                        "count": round(count, 2),
-                        "unit": item_unit
+                        "count": round(count_float, 2),
+                        "countInt": count_int,
+                        "unit": item_unit,
+                        "imagePath": item_image_path,
+                        "imageUnit": item_image_unit
                     })
-                except ZeroDivisionError: # 理論上 item_price > 0 已經避免了
+                except ZeroDivisionError:
                     current_app.logger.warning(f"Equivalency item '{item_name}' has price 0, skipping.")
                 except Exception as e:
                     current_app.logger.error(f"Error calculating equivalency for '{item_name}': {e}")

@@ -73,20 +73,44 @@ def get_subscription_by_id(subscription_id):
             return sub
     return None
 
-def add_subscription(data):
-    """新增一個訂閱項目。"""
-    subscriptions = get_all_subscriptions()
-    now = datetime.now(timezone.utc).isoformat()
-    new_subscription = {
-        "id": str(uuid.uuid4()),
-        "createdAt": now,
-        "updatedAt": now
+def add_subscription(new_subscription_data):
+    """新增一個訂閱項目到 JSON 檔案中。"""
+    subscriptions = get_all_subscriptions() # 取得現有列表
+    
+    # 為新訂閱項目準備資料
+    # 確保所有前端傳來的欄位都存在於 new_item 中，即使是空值
+    # 同時自動產生 id, createdAt, updatedAt
+    new_item = {
+        "id": str(uuid.uuid4()), # 自動產生 ID
+        "createdAt": datetime.now(timezone.utc).isoformat(), # 自動產生建立時間
+        "updatedAt": datetime.now(timezone.utc).isoformat(), # 自動產生更新時間
+        "serviceName": new_subscription_data.get("serviceName"),
+        "serviceIcon": new_subscription_data.get("serviceIcon", ""), # 提供預設空字串
+        "startDate": new_subscription_data.get("startDate"),
+        "billingCycle": new_subscription_data.get("billingCycle"),
+        "price": new_subscription_data.get("price"),
+        "currency": new_subscription_data.get("currency"),
+        "paymentMethod": new_subscription_data.get("paymentMethod", ""), # 提供預設空字串
+        "notes": new_subscription_data.get("notes", ""), # 提供預設空字串
+        "tags": new_subscription_data.get("tags", []), # 提供預設空列表
+        "isActive": new_subscription_data.get("isActive", True), # 預設為 True
+        "billingDetails": new_subscription_data.get("billingDetails", {}), # 提供預設空字典
+        "paymentDetails": new_subscription_data.get("paymentDetails", {}) # 提供預設空字典
     }
-    new_subscription.update(data)
-    subscriptions.append(new_subscription)
-    with open(SUBSCRIPTIONS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(subscriptions, f, ensure_ascii=False, indent=2)
-    return new_subscription
+
+    subscriptions.append(new_item)
+    
+    try:
+        with open(SUBSCRIPTIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(subscriptions, f, indent=2, ensure_ascii=False)
+        current_app.logger.info(f"New subscription added: {new_item.get('serviceName')}, ID: {new_item.get('id')}")
+        return new_item # 回傳新增的項目，包含產生的 id
+    except IOError as e:
+        current_app.logger.error(f"Error writing to subscriptions file {SUBSCRIPTIONS_FILE}: {e}")
+        return None # 或引發自訂異常
+    except Exception as e: # 捕捉其他可能的錯誤
+        current_app.logger.error(f"An unexpected error occurred in add_subscription: {e}")
+        return None
 
 def update_subscription(subscription_id, data):
     """更新指定 ID 的訂閱項目。"""
