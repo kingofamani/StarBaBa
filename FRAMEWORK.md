@@ -14,6 +14,7 @@ StarBaBa 是一個個人訂閱管理 Web 應用程式的最小可行性產品 (M
     - **CSS 框架**: TailwindCSS
 - **後端**: Python
     - **Web 框架**: Flask
+    - **WSGI 伺服器**: Gunicorn (用於部署)
 - **資料庫 (MVP)**: JSON 檔案
     - `data/subscriptions.json`: 儲存使用者訂閱資料。
     - `data/settings.json`: 儲存應用程式設定 (如預設服務、標籤、貨幣、商品換算項目等)。
@@ -49,17 +50,19 @@ StarBaBa/
 │   └── settings.json       # 應用程式設定
 ├── .env                    # 環境變數檔案 (FLASK_APP, FLASK_ENV, SECRET_KEY)
 ├── .env.example            # .env 檔案的範例
+├── .python-version         # 指定 Python 版本
+├── Procfile                # Heroku/Gunicorn 部署設定檔
 ├── tailwind.config.js    # TailwindCSS 設定檔
 ├── package.json          # Node.js 依賴管理 (用於 TailwindCSS)
 ├── requirements.txt      # Python 依賴管理
-└── app.py                # Flask 應用程式啟動腳本 (包含 create_app() 的呼叫)
+└── run.py                # Flask 應用程式啟動腳本 (包含 create_app() 的呼叫)
 ```
 
 ## 4. 核心組件說明
 
-- **`app.py`**: 作為 Flask 應用程式的進入點，呼叫 `create_app()` 並用於啟動開發伺服器。
-- **`app/__init__.py`**: 包含 `create_app` 函式，用於建立和設定 Flask 應用實例。這裡會進行藍圖註冊、設定讀取等初始化工作。
-- **`app/models.py`**: 負責所有與資料存取相關的邏輯。在 MVP 階段，這包括讀取和寫入 `subscriptions.json` 和 `settings.json` 檔案的函式。它將處理資料的增、刪、改、查操作，並管理如 `id`、`createdAt`、`updatedAt` 等欄位的自動生成與更新。
+- **`run.py`**: 作為 Flask 應用程式的進入點，呼叫 `create_app()` 並用於啟動開發伺服器。
+- **`app/__init__.py`**: 包含 `create_app` 函式，用於建立和設定 Flask 應用實例。這裡會進行藍圖註冊、設定讀取、日誌設定、以及應用啟動時的資料目錄與檔案檢查等初始化工作。
+- **`app/models.py`**: 負責所有與資料存取相關的邏輯。在 MVP 階段，這包括讀取和寫入 `subscriptions.json` 和 `settings.json` 檔案的函式。為了確保在不同執行環境下都能正確定位這些資料檔案，檔案路徑是基於 `models.py` 自身位置動態計算得出的絕對路徑。它將處理資料的增、刪、改、查操作，並管理如 `id`、`createdAt`、`updatedAt` 等欄位的自動生成與更新。
 - **`app/routes.py`**: 定義應用程式的所有 HTTP 路由和 API 端點。它將接收前端請求，呼叫 `models.py` 或 `services.py` 中的相應函式處理請求，並回傳 HTTP 回應 (渲染 HTML 模板或 JSON 資料)。
 - **`app/services.py`**: 包含較複雜的業務邏輯，例如 `calculate_statistics` 函式，用於計算訂閱總支出並進行商品換算。MVP 初期此檔案的邏輯已整合入 `routes.py` 中簡化實現。
 - **`app/static/`**: 存放所有靜態資源。`css/style.css` 是由 TailwindCSS 編譯生成的最終樣式表，`css/input.css` 是 TailwindCSS 的原始指令輸入檔案。`js/main.js` 包含前端主要的互動邏輯。
@@ -67,7 +70,7 @@ StarBaBa/
 - **`data/`**: 存放應用程式的資料。`subscriptions.json` 以 JSON 陣列形式儲存所有訂閱紀錄。`settings.json` 以 JSON 物件形式儲存應用程式的配置資訊。
 - **`.env`**: 儲存環境特定的配置，如 Flask 的 `SECRET_KEY`。此檔案不應提交到版本控制。
 - **`tailwind.config.js` 和 `package.json`**: 用於設定和管理 TailwindCSS。
-- **`requirements.txt`**: 列出專案所需的 Python 套件。
+- **`requirements.txt`**: 列出專案所需的 Python 套件 (如 Flask, python-dotenv, Gunicorn)。
 
 ## 5. 資料模型簡述
 

@@ -15,7 +15,7 @@
 - [x] 建立 `data/subscriptions.json` 並填入初始空陣列或範例資料。
 
 ## 後端開發 (Flask)
-- **`app.py`**:
+- **`run.py`**:
     - [x] 建立 Flask 應用程式啟動腳本。
 - **`app/__init__.py`**:
     - [x] 實作 `create_app` Flask App Factory。

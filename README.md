@@ -86,8 +86,9 @@ python -c "import secrets; print(secrets.token_hex(32))"
 將生成的金鑰填入 `.env` 的 `SECRET_KEY` 欄位。`.env` 檔案內容應如下：
 
 ```env
-FLASK_APP=app.py
+FLASK_APP=run.py
 FLASK_ENV=development
+# 佈署上線heroku時改成FLASK_ENV=production
 SECRET_KEY=您生成的超長隨機安全金鑰
 # 例如: SECRET_KEY=a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
 ```
@@ -104,13 +105,24 @@ npm run tailwind:css
 ### 8. 啟動 Flask 應用程式
 
 確保您的 Python 虛擬環境已啟動，並且 TailwindCSS 編譯程序 (`npm run tailwind:css`) 正在另一個終端機中執行。
-在虛擬環境啟動的終端機中執行：
 
+**開發模式:**
+
+在虛擬環境啟動的終端機中執行：
+```bash
+python run.py
+```
+或者，如果您設定了 `FLASK_APP=run.py`，依然可以使用：
 ```bash
 flask run
 ```
 
-應用程式預設會在 `http://127.0.0.1:5000/` 上執行。
+**使用 Gunicorn (通常用於生產環境模擬或部署):**
+```bash
+gunicorn run:app
+```
+
+應用程式預設會在 `http://127.0.0.1:5000/` (使用 `flask run` 或 `python run.py`) 或 `http://127.0.0.1:8000/` (預設 Gunicorn) 上執行。
 
 ## 🗂️ 專案結構 (概覽)
 
@@ -121,7 +133,8 @@ StarBaBa/
 │   └── templates/      # HTML 模板
 ├── data/               # JSON 資料檔案
 ├── .env                # 環境變數
-├── app.py              # Flask 啟動點
+├── Procfile            # Gunicorn/部署設定
+├── run.py              # Flask 啟動點
 ├── requirements.txt    # Python 依賴
 ├── package.json        # Node.js 依賴 (for Tailwind)
 └── tailwind.config.js  # TailwindCSS 設定
