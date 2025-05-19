@@ -13,10 +13,10 @@ StarBaBa 是一個簡單易用的個人訂閱服務管理 Web 應用程式 MVP (
 
 ## 🛠️ 技術棧
 
-- **後端**: Flask (Python)
+- **後端**: Flask (Python), SQLAlchemy (ORM)
 - **前端**: HTML, JavaScript, CSS (TailwindCSS)
-- **資料庫**: JSON 檔案 (MVP 階段)
-- **環境**: Python 3.x, Node.js (用於 TailwindCSS)
+- **資料庫**: PostgreSQL (主要), JSON 檔案 (遷移前/備份)
+- **環境**: Python 3.x, Node.js (用於 TailwindCSS), PostgreSQL
 
 ## 🚀 環境設定與啟動
 
@@ -25,6 +25,7 @@ StarBaBa 是一個簡單易用的個人訂閱服務管理 Web 應用程式 MVP (
 - Python (建議 3.8 或更高版本)
 - Pip (Python 套件安裝器)
 - Node.js 和 npm (用於安裝和執行 TailwindCSS)
+- PostgreSQL 本地服務 (用於本地開發)
 
 ### 2. 取得專案
 
@@ -53,7 +54,7 @@ source .venv/bin/activate
 
 在已啟動的虛擬環境中執行：
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt # 將包含 Flask, python-dotenv, psycopg2-binary, Flask-SQLAlchemy/SQLAlchemy 等
 ```
 
 ### 5. 安裝 Node.js 依賴 (用於 TailwindCSS)
@@ -64,33 +65,26 @@ npm install
 
 ### 6. 設定環境變數
 
-複製 `.env.example` 並重新命名為 `.env`：
+複製 `.env.example` 並重新命名為 `.env`。
 
-```bash
-# Windows (PowerShell)
-Copy-Item .env.example .env
+然後編輯 `.env` 檔案。您 **必須** 設定 `SECRET_KEY` 和 `DATABASE_URL`。
 
-# Windows (Command Prompt)
-copy .env.example .env
-
-# macOS / Linux
-cp .env.example .env
-```
-
-然後編輯 `.env` 檔案。您 **必須** 設定一個 `SECRET_KEY`。您可以使用 Python 在虛擬環境中生成一個隨機金鑰：
-
+**`SECRET_KEY`**: 您可以使用 Python 在虛擬環境中生成一個隨機金鑰：
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-將生成的金鑰填入 `.env` 的 `SECRET_KEY` 欄位。`.env` 檔案內容應如下：
+**`DATABASE_URL`**: 設定您的 PostgreSQL 連接字串。本地開發範例如下 (請根據您的實際設定修改使用者名稱、密碼、主機、埠和資料庫名稱)：
+`postgresql://your_db_user:your_db_password@localhost:5432/starbaba_db`
+
+`.env` 檔案內容應類似：
 
 ```env
 FLASK_APP=run.py
 FLASK_ENV=development
 # 佈署上線heroku時改成FLASK_ENV=production
 SECRET_KEY=您生成的超長隨機安全金鑰
-# 例如: SECRET_KEY=a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
+DATABASE_URL=postgresql://user:password@host:port/dbname
 ```
 
 ### 7. 編譯 TailwindCSS
@@ -104,7 +98,11 @@ npm run tailwind:css
 
 ### 8. 啟動 Flask 應用程式
 
-確保您的 Python 虛擬環境已啟動，並且 TailwindCSS 編譯程序 (`npm run tailwind:css`) 正在另一個終端機中執行。
+確保您的 Python 虛擬環境已啟動，PostgreSQL 服務正在執行，並且 TailwindCSS 編譯程序 (`npm run tailwind:css`) 正在另一個終端機中執行。
+
+首次執行前，您可能需要初始化資料庫並遷移資料：
+1.  **(若使用 Flask-Migrate/Alembic)** 執行資料庫遷移指令 (如 `flask db upgrade`)。
+2.  執行資料植入腳本將現有 `data/*.json` 內容匯入 PostgreSQL (例如 `python manage.py seed_db`，如果提供了這樣的腳本)。
 
 **開發模式:**
 
@@ -129,15 +127,18 @@ gunicorn run:app
 ```
 StarBaBa/
 ├── app/                # Flask 應用程式
+│   ├── models.py       # SQLAlchemy 資料庫模型
 │   ├── static/         # 靜態檔案 (CSS, JS, Images)
 │   └── templates/      # HTML 模板
-├── data/               # JSON 資料檔案
-├── .env                # 環境變數
+├── data/               # JSON 資料檔案 (遷移後可移除或備份)
+├── migrations/         # (可選) Flask-Migrate/Alembic 遷移腳本
+├── .env                # 環境變數 (含 DATABASE_URL)
 ├── Procfile            # Gunicorn/部署設定
 ├── run.py              # Flask 啟動點
-├── requirements.txt    # Python 依賴
+├── requirements.txt    # Python 依賴 (含 DB 相關套件)
 ├── package.json        # Node.js 依賴 (for Tailwind)
 └── tailwind.config.js  # TailwindCSS 設定
+└── manage.py           # (可選) 管理腳本
 ```
 
 ## ⚙️ API 端點 (MVP)
@@ -151,10 +152,91 @@ StarBaBa/
 - `DELETE /api/subscriptions/<id>`: 刪除指定 ID 的訂閱項目。
 - `GET /api/stats`: 獲取統計數據 (總月費、年費、商品換算)。
 
+### 測試 API (使用 curl)
+
+以下是使用 `curl` 測試 StarBaBa API 端點的範例指令。請確保您的 Flask 應用程式正在執行。
+
+**1. 獲取應用程式設定**
+```bash
+curl -X GET http://127.0.0.1:5000/api/settings
+```
+
+**2. 新增訂閱項目**
+```bash
+curl -X POST http://127.0.0.1:5000/api/subscriptions \
+-H "Content-Type: application/json" \
+-d '{
+    "serviceName": "範例服務",
+    "price": 9.99,
+    "currency": "USD",
+    "billingCycle": "monthly",
+    "startDate": "2024-01-01",
+    "endDate": null,
+    "category": "工具",
+    "tags": ["生產力", "雲端"],
+    "notes": "這是一個測試訂閱。",
+    "isActive": true,
+    "paymentMethod": "信用卡",
+    "accountIdentifier": "test@example.com",
+    "url": "http://example.com",
+    "autoRenew": true
+}'
+```
+**注意:** 上述 `POST` 指令成功後會回傳新增的訂閱項目，其中包含一個 `id` (通常是 UUID 字串)。請記下這個 `id`，以便在後續的讀取、更新和刪除操作中使用。
+
+**3. 讀取所有訂閱項目**
+```bash
+curl -X GET http://127.0.0.1:5000/api/subscriptions
+```
+
+**4. 讀取單個訂閱項目**
+
+將 `<your_subscription_id>` 替換為您想要讀取的訂閱項目 ID (例如，從新增操作的回應中取得的 ID)。
+```bash
+curl -X GET http://127.0.0.1:5000/api/subscriptions/<your_subscription_id>
+```
+範例 (假設 ID 為 `d8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8`):
+```bash
+curl -X GET http://127.0.0.1:5000/api/subscriptions/d8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8
+```
+
+**5. 更新訂閱項目**
+
+將 `<your_subscription_id>` 替換為您想要更新的訂閱項目 ID。
+```bash
+curl -X PUT http://127.0.0.1:5000/api/subscriptions/<your_subscription_id> \
+-H "Content-Type: application/json" \
+-d '{
+    "price": 12.99,
+    "notes": "價格已更新，並新增備註。"
+}'
+```
+範例 (假設 ID 為 `d8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8`):
+```bash
+curl -X PUT http://127.0.0.1:5000/api/subscriptions/d8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8 \
+-H "Content-Type: application/json" \
+-d '{
+    "price": 12.99,
+    "notes": "價格已更新，並新增備註。"
+}'
+```
+
+**6. 刪除訂閱項目**
+
+將 `<your_subscription_id>` 替換為您想要刪除的訂閱項目 ID。
+```bash
+curl -X DELETE http://127.0.0.1:5000/api/subscriptions/<your_subscription_id>
+```
+範例 (假設 ID 為 `d8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8`):
+```bash
+curl -X DELETE http://127.0.0.1:5000/api/subscriptions/d8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8
+```
+
 ## 🔮 未來展望
 
+- [完成 - 本地] 資料庫整合 (PostgreSQL 本地環境已設定並運作)。
+- [待辦] 資料庫部署 (Heroku PostgreSQL)。
 - 使用者認證系統。
-- 資料庫整合 (例如 SQLite, PostgreSQL)。
 - 更進階的統計與圖表報告。
 - 匯入/匯出功能。
 - 到期提醒通知。

@@ -11,10 +11,8 @@ def index():
 @main_bp.route('/api/settings', methods=['GET'])
 def get_settings_api():
     settings = models.get_settings()
-    if not settings:
-        # 即使 models.get_settings() 內部有錯誤處理並回傳空字典，
-        # 這裡我們還是可以回傳一個 500 錯誤，如果 settings 被認為是關鍵的
-        current_app.logger.warning("Settings could not be loaded. Check models.py and data/settings.json")
+    if not settings: # 雖然 models.get_settings() 現在有預設值，但保留此檢查以防萬一
+        current_app.logger.warning("Settings could not be loaded from the database or default settings are empty.")
         return jsonify({ "error": "Application settings are currently unavailable." }), 500
     return jsonify(settings)
 
@@ -52,7 +50,11 @@ def add_subscription_api():
         data['isActive'] = True # 預設為啟用
         
     new_subscription = models.add_subscription(data)
-    return jsonify(new_subscription), 201
+    if new_subscription:
+        return jsonify(new_subscription), 201
+    else:
+        # 如果 add_subscription 可能因為某些原因 (例如資料庫錯誤但未引發異常) 回傳 None
+        return jsonify({"error": "Failed to create subscription."}), 500
 
 @main_bp.route('/api/subscriptions/<string:subscription_id>', methods=['GET'])
 def get_subscription_api(subscription_id):
@@ -67,22 +69,23 @@ def update_subscription_api(subscription_id):
     if not data:
         return jsonify({"error": "Invalid data"}), 400
 
-    # 欄位驗證 (與新增類似，但可選)
-    if 'price' in data:
-        try:
-            data['price'] = float(data['price'])
-        except ValueError:
-            return jsonify({"error": "Price must be a valid number"}), 400
+    # 移除 routes.py 中的 price 轉換，讓模型層處理或依賴 SQLAlchemy 的類型轉換
+    # if 'price' in data:
+    #     try:
+    #         data['price'] = float(data['price'])
+    #     except ValueError:
+    #         return jsonify({"error": "Price must be a valid number"}), 400
             
     updated_subscription = models.update_subscription(subscription_id, data)
     if updated_subscription:
         return jsonify(updated_subscription)
+    # 根據 models.update_subscription 的回傳邏輯，它在找不到或失敗時回傳 None
     return jsonify({"error": "Subscription not found or update failed"}), 404
 
 @main_bp.route('/api/subscriptions/<string:subscription_id>', methods=['DELETE'])
 def delete_subscription_api(subscription_id):
     if models.delete_subscription(subscription_id):
-        return jsonify({"message": "Subscription deleted"}), 200 # 通常 204 No Content 也可以
+        return '', 204 # 成功刪除，回傳 204 No Content
     return jsonify({"error": "Subscription not found or delete failed"}), 404
 
 @main_bp.route('/api/stats', methods=['GET'])

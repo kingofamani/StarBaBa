@@ -13,12 +13,12 @@
 6.  **前端 (`app/static/js/main.js`)**: 腳本開始執行。
     *   **非同步請求設定**: 發送 `GET /api/settings` 請求。
         *   **後端 (`app/routes.py`)**: 處理 `/api/settings`，呼叫 `app/models.py` 中的 `get_settings()` 函式。
-        *   **後端 (`app/models.py`)**: 讀取 `data/settings.json` 檔案內容。
-        *   **後端**: 將 `settings.json` 內容以 JSON 格式回傳。
-        *   **前端 (`main.js`)**: 收到設定資料，用於後續填充表單下拉選單 (例如：貨幣、標籤、預設服務等)。
+        *   **後端 (`app/models.py`)**: 透過 ORM 從 PostgreSQL 資料庫的 `Settings` 表讀取設定資料。
+        *   **後端**: 將設定資料以 JSON 格式回傳。
+        *   **前端 (`main.js`)**: 收到設定資料，用於後續填充表單下拉選單。
     *   **非同步請求訂閱**: 發送 `GET /api/subscriptions` 請求。
         *   **後端 (`app/routes.py`)**: 處理 `/api/subscriptions`，呼叫 `app/models.py` 中的 `get_all_subscriptions()` 函式。
-        *   **後端 (`app/models.py`)**: 讀取 `data/subscriptions.json` 檔案內容。
+        *   **後端 (`app/models.py`)**: 透過 ORM 從 PostgreSQL 資料庫的 `Subscription` 表讀取所有訂閱記錄。
         *   **後端**: 將訂閱列表以 JSON 格式回傳。
         *   **前端 (`main.js`)**: 收到訂閱列表資料。
 7.  **前端 (`main.js`)**: 動態渲染訂閱列表。
@@ -44,10 +44,9 @@
 6.  **後端 (`app/routes.py`)**: 接收 `POST` 請求。
     *   呼叫 `app/models.py` 中的 `add_subscription(data)` 函式，傳入從請求中解析的訂閱資料。
 7.  **後端 (`app/models.py` - `add_subscription`)**:
-    *   為新的訂閱記錄生成一個唯一的 `id` (例如使用 `uuid.uuid4()`)。
-    *   設定 `createdAt` 和 `updatedAt` 時間戳。
-    *   將新的訂閱物件添加到從 `subscriptions.json` 讀取的現有訂閱列表中。
-    *   將更新後的訂閱列表寫回 `data/subscriptions.json` 檔案。
+    *   使用 SQLAlchemy 模型接收資料。
+    *   (ORM 通常處理 `id` 的生成，`createdAt`, `updatedAt` 時間戳可由資料庫或 ORM 自動管理)。
+    *   將新的訂閱物件儲存到 PostgreSQL 資料庫的 `Subscription` 表。
     *   回傳新建立的訂閱物件 (或成功訊息)。
 8.  **前端 (`main.js`)**: 接收後端的回應。
     *   若成功：
@@ -73,10 +72,10 @@
 6.  **後端 (`app/routes.py`)**: 接收 `PUT` 請求。
     *   呼叫 `app/models.py` 中的 `update_subscription(id, data)` 函式。
 7.  **後端 (`app/models.py` - `update_subscription`)**:
-    *   根據 `id` 找到對應的訂閱記錄。
+    *   根據 `id` 透過 ORM 找到對應的訂閱記錄。
     *   更新該記錄的欄位值。
-    *   更新 `updatedAt` 時間戳。
-    *   將更新後的訂閱列表寫回 `data/subscriptions.json`。
+    *   (ORM 通常處理 `updatedAt` 時間戳的自動更新)。
+    *   將更新儲存回 PostgreSQL 資料庫的 `Subscription` 表。
     *   回傳更新後的訂閱物件 (或成功訊息)。
 8.  **前端 (`main.js`)**: 接收後端的回應。
     *   若成功：
@@ -98,8 +97,7 @@
 5.  **後端 (`app/routes.py`)**: 接收 `DELETE` 請求。
     *   呼叫 `app/models.py` 中的 `delete_subscription(id)` 函式。
 6.  **後端 (`app/models.py` - `delete_subscription`)**:
-    *   根據 `id` 從訂閱列表中移除對應的記錄。
-    *   將更新後的訂閱列表寫回 `data/subscriptions.json`。
+    *   根據 `id` 透過 ORM 從 PostgreSQL 資料庫的 `Subscription` 表中刪除對應的記錄。
     *   回傳成功訊息。
 7.  **前端 (`main.js`)**: 接收後端的回應。
     *   若成功：
@@ -115,11 +113,39 @@
 
 1.  **觸發時機**: 頁面初始載入完成後，或在訂閱列表發生變更 (新增、編輯、刪除) 後。
 2.  **資料來源**:
-    *   所有訂閱項目: 從 `/api/subscriptions` 獲取，或從前端 `main.js` 維護的當前訂閱列表獲取。
-    *   商品換算設定: 從 `/api/settings` 獲取的 `equivalencyItems` 和 `defaultCurrency`。
-3.  **計算邏輯 (`main.js` 請求 `/api/stats`，後端在 `app/routes.py` 中計算)**:
+    *   所有訂閱項目: 從 `/api/subscriptions` (後端從 PostgreSQL) 獲取。
+    *   商品換算設定: 從 `/api/settings` (後端從 PostgreSQL) 獲取的 `equivalencyItems` 和 `defaultCurrency`。
+3.  **計算邏輯 (`main.js` 請求 `/api/stats`，後端在 `app/routes.py` 中計算，資料來源為 PostgreSQL)**:
     *   篩選 `isActive: true` 的訂閱項目。
     *   根據 `billingCycle` 和 `price` 計算總月費和總年費 (需要將不同週期的費用統一轉換，例如年繳費用除以12得到月費)。
     *   (MVP階段假設所有訂閱和商品都是 `defaultCurrency`，未來可擴展貨幣轉換)。
     *   遍歷 `equivalencyItems`，用計算出的總花費 (例如總月費) 除以每個商品的 `price`，得到可換算的商品數量。
-4.  **前端 (`main.js`)**: 將計算出的總月費、總年費以及各商品的換算數量更新到 `index.html` 中指定的統計區域。 
+4.  **前端 (`main.js`)**: 將計算出的總月費、總年費以及各商品的換算數量更新到 `index.html` 中指定的統計區域。
+
+## (新) 6. 資料庫初始化/遷移流程 (本地開發首次)
+
+1.  **開發者**: 準備好本地 PostgreSQL 環境 (已安裝服務，建立資料庫和使用者)。 (使用者已完成)
+2.  **開發者**: 設定 `.env` 檔案中的 `DATABASE_URL` 指向本地資料庫。 (使用者已完成)
+3.  **應用程式/開發者**: (若使用 Flask-Migrate/Alembic)
+    *   執行遷移指令 (例如 `flask db init`, `flask db migrate -m "Initial migration"`, `flask db upgrade`) 以在資料庫中建立表格結構。 (目前未使用)
+4.  **開發者**: (若無遷移工具，SQLAlchemy 會在首次合適操作時嘗試根據模型 `Base.metadata.create_all(engine)` 建立表格)。 (資料庫表格由使用者根據 DDL 手動建立)
+5.  **使用者**: 將 `data/settings.json` 和 `data/subscriptions.json` 的資料手動匯入到 PostgreSQL 的 `app_settings` 和 `subscriptions` 表。
+    *   ~~**遷移腳本**: 連接到 PostgreSQL 資料庫。~~
+    *   ~~**遷移腳本**: 讀取 `data/settings.json` 檔案內容。~~
+    *   ~~**遷移腳本**: 將 `settings` 資料轉換並使用 ORM 寫入 PostgreSQL 的 `Settings` 表。~~
+    *   ~~**遷移腳本**: 讀取 `data/subscriptions.json` 檔案內容。~~
+    *   ~~**遷移腳本**: 將 `subscriptions` 資料轉換並使用 ORM 寫入 PostgreSQL 的 `Subscription` 表。~~
+6.  **使用者**: 驗證資料是否成功匯入資料庫。
+7.  **應用程式**: 正常啟動，從 PostgreSQL 讀寫資料。 (已由使用者測試 API 確認)
+
+## (新) 7. Heroku 部署時的資料庫設定與遷移
+
+1.  **開發者**: 在 Heroku 上建立 PostgreSQL 附加元件，Heroku 自動設定 `DATABASE_URL` 環境變數。
+2.  **Heroku (部署流程中)**:
+    *   (若使用 Flask-Migrate/Alembic 且已設定 Procfile 或 release phase scripts) 自動執行 `flask db upgrade` 以建立/更新資料庫結構。
+    *   (若無遷移工具) SQLAlchemy 可能會在應用程式首次啟動並嘗試存取資料庫時，根據模型定義建立表格。
+3.  **開發者**: (針對初始資料)
+    *   **選項 A (執行遷移腳本)**: 如果遷移腳本設計為可在 Heroku 環境執行 (例如，透過 `heroku run python manage.py seed_db`)，則執行它將 JSON 資料 (如果應用程式還能存取) 或預設資料植入 Heroku PostgreSQL。
+    *   **選項 B (Dump/Restore)**: 在本地將已包含資料的 PostgreSQL 資料庫進行 dump，然後將 dump 檔案 restore 到 Heroku PostgreSQL。這是較乾淨且常用的方式，用於遷移已有的生產級資料。
+    *   **選項 C (手動或應用程式內建功能)**: 若資料量小，或應用程式有後台管理功能可匯入資料。
+4.  **應用程式**: 在 Heroku 上啟動，連接到 Heroku PostgreSQL。 

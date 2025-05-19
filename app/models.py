@@ -1,145 +1,186 @@
-import json
-import uuid
-from datetime import datetime, timezone
-import os
-from flask import current_app
+from datetime import datetime, timezone, date
+from app import db # 從 app/__init__.py 導入 db 實例
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID # Renamed to avoid confusion
+import uuid as py_uuid
+from sqlalchemy import func # For server_default and onupdate
 
-# Calculate absolute paths to data files
-MODEL_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Navigates up from 'app' dir (where models.py is) to project root, then into 'data'
-PROJECT_ROOT_DIR = os.path.join(MODEL_FILE_DIR, '..')
-DATA_DIR = os.path.join(PROJECT_ROOT_DIR, 'data')
+# Settings Model
+# settings.json 是一個單一物件，我們將其儲存在一個名為 'app_settings' 的表中，
+# 並且始終只有一條記錄 (或使用 key-value 方式儲存每個設定)。
+# 為了簡單起見，先用一個 JSONB 欄位儲存整個 settings 物件。
+class Settings(db.Model):
+    __tablename__ = 'app_settings'
+    id = db.Column(db.Integer, primary_key=True) # Matches SERIAL PRIMARY KEY
+    settings_data = db.Column(JSONB, nullable=False) # Matches settings_data JSONB NOT NULL
+    last_updated = db.Column(db.DateTime(timezone=True), 
+                             server_default=func.current_timestamp(), # Matches DEFAULT CURRENT_TIMESTAMP
+                             onupdate=func.current_timestamp(), # For ORM updates
+                             nullable=False) # Assuming last_updated should not be null based on default
 
-SUBSCRIPTIONS_FILE = os.path.join(DATA_DIR, 'subscriptions.json')
-SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+    def __repr__(self):
+        return f"<Settings {self.id}>"
 
-# def _ensure_data_files_exist():
-#     """確保資料目錄存在。不再自動創建或覆寫資料檔案。"""
-#     # if not os.path.exists(DATA_DIR):
-#     #     current_app.logger.info(f"Data directory {DATA_DIR} not found. Creating it.")
-#     #     os.makedirs(DATA_DIR)
+# Subscription Model
+class Subscription(db.Model):
+    __tablename__ = 'subscriptions'
     
-#     # REMOVED: 不再自動創建空的 subscriptions.json
-#     # if not os.path.exists(SUBSCRIPTIONS_FILE):
-#     #     current_app.logger.warning(f"Subscriptions file {SUBSCRIPTIONS_FILE} not found. An empty one would have been created.")
-#         # with open(SUBSCRIPTIONS_FILE, 'w', encoding='utf-8') as f:
-#         #     json.dump([], f, ensure_ascii=False, indent=2)
-            
-#     # REMOVED: 不再自動創建空的 settings.json
-#     # if not os.path.exists(SETTINGS_FILE):
-#     #     current_app.logger.warning(f"Settings file {SETTINGS_FILE} not found. A default one would have been created.")
-#         # default_settings = {"appName": "StarBaBa", "defaultCurrency": "TWD", "equivalencyItems": []}
-#         # with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
-#         #     json.dump(default_settings, f, ensure_ascii=False, indent=2)
+    id = db.Column(PG_UUID(as_uuid=True), primary_key=True, default=py_uuid.uuid4) # Matches id UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    service_name = db.Column(db.String(255), nullable=False) # Matches service_name VARCHAR(255) NOT NULL
+    service_icon = db.Column(db.String(255), nullable=True) # Matches service_icon VARCHAR(255)
+    tags = db.Column(JSONB, nullable=True, server_default='[]') # Matches tags JSONB DEFAULT '[]'::jsonb
+    start_date = db.Column(db.Date, nullable=True) # Matches start_date DATE
+    billing_cycle = db.Column(db.String(50), nullable=False) # Matches billing_cycle VARCHAR(50) NOT NULL
+    billing_details = db.Column(JSONB, nullable=True) # Matches billing_details JSONB
+    price = db.Column(db.Numeric(10, 2), nullable=False) # Matches price NUMERIC(10, 2) NOT NULL
+    currency = db.Column(db.String(10), nullable=False) # Matches currency VARCHAR(10) NOT NULL
+    notes = db.Column(db.Text, nullable=True) # Matches notes TEXT
+    payment_method = db.Column(db.String(50), nullable=True) # Matches payment_method VARCHAR(50)
+    payment_details = db.Column(JSONB, nullable=True) # Matches payment_details JSONB
+    is_active = db.Column(db.Boolean, default=True, nullable=False) # Matches is_active BOOLEAN NOT NULL DEFAULT TRUE
+    
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()) # Matches created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp()) # Matches updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP. DB trigger will also handle this.
 
-# _ensure_data_files_exist() # 模組載入時即確保資料目錄存在
+    def __repr__(self):
+        return f"<Subscription '{self.service_name}'>"
+
+    def to_dict(self):
+        """將 Subscription 物件轉換為字典，API 預期 camelCase。"""
+        return {
+            'id': str(self.id),
+            'serviceName': self.service_name,
+            'serviceIcon': self.service_icon,
+            'startDate': self.start_date.isoformat() if self.start_date else None,
+            'billingCycle': self.billing_cycle,
+            'price': str(self.price) if self.price is not None else None,
+            'currency': self.currency,
+            'paymentMethod': self.payment_method,
+            'notes': self.notes,
+            'tags': self.tags,
+            'isActive': self.is_active,
+            'billingDetails': self.billing_details,
+            'paymentDetails': self.payment_details,
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+# --- Data Access Functions ---
 
 def get_settings():
-    """讀取 settings.json 的內容。"""
-    try:
-        with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        current_app.logger.error(f"{SETTINGS_FILE} not found. Returning empty settings.")
-        return {}
-    except json.JSONDecodeError:
-        current_app.logger.error(f"Error decoding {SETTINGS_FILE}. Returning empty settings.")
-        return {}
+    """從資料庫讀取應用程式設定。"""
+    settings_record = db.session.query(Settings).first()
+    if settings_record:
+        return settings_record.settings_data
+    return {"appName": "StarBaBa (Default from Model)", "defaultCurrency": "USD", "equivalencyItems": []}
+
+
+def update_settings(new_settings_data):
+    """更新或創建應用程式設定。"""
+    settings_record = db.session.query(Settings).first()
+    if settings_record:
+        settings_record.settings_data = new_settings_data
+    else:
+        settings_record = Settings(settings_data=new_settings_data)
+        db.session.add(settings_record)
+    db.session.commit()
+    return settings_record.settings_data
+
 
 def get_all_subscriptions():
-    """讀取 subscriptions.json 的所有訂閱項目。"""
-    current_app.logger.info(f"Attempting to read subscriptions from: {SUBSCRIPTIONS_FILE}")
-    try:
-        with open(SUBSCRIPTIONS_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            current_app.logger.info(f"Successfully loaded {len(data)} subscriptions from file.")
-            return data
-    except FileNotFoundError:
-        current_app.logger.error(f"{SUBSCRIPTIONS_FILE} not found. Returning empty list.")
-        return []
-    except json.JSONDecodeError:
-        current_app.logger.error(f"Error decoding {SUBSCRIPTIONS_FILE}. Returning empty list.")
-        return []
-    except Exception as e:
-        current_app.logger.error(f"An unexpected error occurred in get_all_subscriptions: {e}")
-        return []
+    """從資料庫讀取所有訂閱項目。"""
+    subscriptions = db.session.query(Subscription).all()
+    return [sub.to_dict() for sub in subscriptions]
 
-def get_subscription_by_id(subscription_id):
+def get_subscription_by_id(subscription_id_str):
     """根據 ID 獲取指定的訂閱項目。"""
-    subscriptions = get_all_subscriptions()
-    for sub in subscriptions:
-        if sub.get('id') == subscription_id:
-            return sub
-    return None
-
-def add_subscription(new_subscription_data):
-    """新增一個訂閱項目到 JSON 檔案中。"""
-    subscriptions = get_all_subscriptions() # 取得現有列表
-    
-    # 為新訂閱項目準備資料
-    # 確保所有前端傳來的欄位都存在於 new_item 中，即使是空值
-    # 同時自動產生 id, createdAt, updatedAt
-    new_item = {
-        "id": str(uuid.uuid4()), # 自動產生 ID
-        "createdAt": datetime.now(timezone.utc).isoformat(), # 自動產生建立時間
-        "updatedAt": datetime.now(timezone.utc).isoformat(), # 自動產生更新時間
-        "serviceName": new_subscription_data.get("serviceName"),
-        "serviceIcon": new_subscription_data.get("serviceIcon", ""), # 提供預設空字串
-        "startDate": new_subscription_data.get("startDate"),
-        "billingCycle": new_subscription_data.get("billingCycle"),
-        "price": new_subscription_data.get("price"),
-        "currency": new_subscription_data.get("currency"),
-        "paymentMethod": new_subscription_data.get("paymentMethod", ""), # 提供預設空字串
-        "notes": new_subscription_data.get("notes", ""), # 提供預設空字串
-        "tags": new_subscription_data.get("tags", []), # 提供預設空列表
-        "isActive": new_subscription_data.get("isActive", True), # 預設為 True
-        "billingDetails": new_subscription_data.get("billingDetails", {}), # 提供預設空字典
-        "paymentDetails": new_subscription_data.get("paymentDetails", {}) # 提供預設空字典
-    }
-
-    subscriptions.append(new_item)
-    
     try:
-        with open(SUBSCRIPTIONS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(subscriptions, f, indent=2, ensure_ascii=False)
-        current_app.logger.info(f"New subscription added: {new_item.get('serviceName')}, ID: {new_item.get('id')}")
-        return new_item # 回傳新增的項目，包含產生的 id
-    except IOError as e:
-        current_app.logger.error(f"Error writing to subscriptions file {SUBSCRIPTIONS_FILE}: {e}")
-        return None # 或引發自訂異常
-    except Exception as e: # 捕捉其他可能的錯誤
-        current_app.logger.error(f"An unexpected error occurred in add_subscription: {e}")
+        sub_id_uuid = py_uuid.UUID(subscription_id_str)
+    except ValueError:
+        return None 
+    
+    subscription = db.session.query(Subscription).get(sub_id_uuid)
+    return subscription.to_dict() if subscription else None
+
+def add_subscription(data):
+    """新增一個訂閱項目到資料庫中。API 使用 camelCase。"""
+    start_date_obj = None
+    if data.get('startDate'):
+        try:
+            start_date_obj = date.fromisoformat(data.get('startDate'))
+        except ValueError:
+            # Handle invalid date format if necessary, or let it be None
+            pass
+
+    new_sub = Subscription(
+        service_name=data.get('serviceName'),
+        service_icon=data.get('serviceIcon'),
+        start_date=start_date_obj,
+        billing_cycle=data.get('billingCycle'),
+        price=data.get('price'), 
+        currency=data.get('currency'),
+        payment_method=data.get('paymentMethod'),
+        notes=data.get('notes'),
+        tags=data.get('tags', []),
+        is_active=data.get('isActive', True),
+        billing_details=data.get('billingDetails', {}),
+        payment_details=data.get('paymentDetails', {})
+    )
+    db.session.add(new_sub)
+    db.session.commit()
+    return new_sub.to_dict()
+
+def update_subscription(subscription_id_str, data):
+    """更新指定 ID 的訂閱項目。API 使用 camelCase。"""
+    try:
+        sub_id_uuid = py_uuid.UUID(subscription_id_str)
+    except ValueError:
+        return None
+        
+    sub = db.session.query(Subscription).get(sub_id_uuid)
+    if not sub:
         return None
 
-def update_subscription(subscription_id, data):
-    """更新指定 ID 的訂閱項目。"""
-    subscriptions = get_all_subscriptions()
-    for i, sub in enumerate(subscriptions):
-        if sub.get('id') == subscription_id:
-            now = datetime.now(timezone.utc).isoformat()
-            # 保留原始的 createdAt，只更新 updatedAt 和其他資料
-            original_created_at = sub.get('createdAt')
-            subscriptions[i].update(data) 
-            subscriptions[i]['updatedAt'] = now
-            if original_created_at: # 確保 createdAt 不會被 data 中的 updatedAt 覆蓋
-                 subscriptions[i]['createdAt'] = original_created_at
-            if 'id' in data and data['id'] != subscription_id: # 防止 ID 被意外修改
-                subscriptions[i]['id'] = subscription_id
-            else:
-                 subscriptions[i]['id'] = subscription_id # 確保 ID 欄位存在
+    if 'serviceName' in data:
+        sub.service_name = data['serviceName']
+    if 'serviceIcon' in data:
+        sub.service_icon = data['serviceIcon']
+    if data.get('startDate'):
+        try:
+            sub.start_date = date.fromisoformat(data.get('startDate'))
+        except ValueError:
+            pass # Or handle error
+    if 'billingCycle' in data:
+        sub.billing_cycle = data['billingCycle']
+    if data.get('price') is not None:
+        sub.price = data['price']
+    if 'currency' in data:
+        sub.currency = data['currency']
+    if 'paymentMethod' in data:
+        sub.payment_method = data['paymentMethod']
+    if 'notes' in data:
+        sub.notes = data['notes']
+    if 'tags' in data:
+        sub.tags = data['tags']
+    if 'isActive' in data:
+        sub.is_active = data['isActive']
+    if 'billingDetails' in data:
+        sub.billing_details = data['billingDetails']
+    if 'paymentDetails' in data:
+        sub.payment_details = data['paymentDetails']
+    
+    db.session.commit()
+    return sub.to_dict()
 
-            with open(SUBSCRIPTIONS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(subscriptions, f, ensure_ascii=False, indent=2)
-            return subscriptions[i]
-    return None
-
-def delete_subscription(subscription_id):
+def delete_subscription(subscription_id_str):
     """刪除指定 ID 的訂閱項目。"""
-    subscriptions = get_all_subscriptions()
-    original_length = len(subscriptions)
-    subscriptions = [sub for sub in subscriptions if sub.get('id') != subscription_id]
-    if len(subscriptions) < original_length:
-        with open(SUBSCRIPTIONS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(subscriptions, f, ensure_ascii=False, indent=2)
+    try:
+        sub_id_uuid = py_uuid.UUID(subscription_id_str)
+    except ValueError:
+        return False
+        
+    sub = db.session.query(Subscription).get(sub_id_uuid)
+    if sub:
+        db.session.delete(sub)
+        db.session.commit()
         return True
     return False 
