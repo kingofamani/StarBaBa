@@ -6,6 +6,76 @@
     <title>{% block title %}StarBaBa{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block head_extra %}{% endblock %}
+    <style>
+        /* 圖片版權宣告對話框樣式 */
+        .icon-copyright-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .icon-copyright-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .icon-copyright-close {
+            color: #aaa;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .icon-copyright-close:hover,
+        .icon-copyright-close:focus {
+            color: #333;
+        }
+        .copyright-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 14px;
+        }
+        .copyright-link:hover {
+            color: #1d4ed8;
+        }
+        .copyright-list {
+            column-count: 2;
+            column-gap: 20px;
+            margin-top: 20px;
+        }
+        .copyright-item {
+            break-inside: avoid;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        @media (max-width: 768px) {
+            .copyright-list {
+                column-count: 1;
+            }
+            .icon-copyright-modal-content {
+                margin: 10% auto;
+                padding: 20px;
+                width: 95%;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
     <nav class="bg-blue-600 text-white p-4 shadow-md">
@@ -23,10 +93,197 @@
     </main>
 
     <footer class="text-center text-gray-600 mt-12 mb-6">
-        <p>&copy; {{ current_year }} StarBaBa. All rights reserved.</p>
+        <p>
+            &copy; {{ current_year }} StarBaBa. All rights reserved.
+            <span class="copyright-link" id="icon-copyright-link">圖片版權宣告</span>
+        </p>
     </footer>
 
+    <!-- 圖片版權宣告對話框 -->
+    <div id="icon-copyright-modal" class="icon-copyright-modal">
+        <div class="icon-copyright-modal-content">
+            <span class="icon-copyright-close" id="icon-copyright-close">&times;</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">圖片版權宣告</h2>
+            <p class="text-gray-600 mb-4">感謝 Icons8 提供精美的圖示，以下為本網站使用的圖示版權資訊：</p>
+            <div class="copyright-list">
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/um5dCVVoxl11/netflix">Netflix</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/63316/spotify">Spotify</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/19318/youtube">YouTube</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/o7YMV0TFYOgR/disney-plus">Disney</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/FBO05Dys9QCg/chatgpt">ChatGPT</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/QEiQywWQEqj8/midjourney">Midjourney</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/gav46YArUSy1/adobe">Adobe</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/pY2bcYb7nGEW/google-one">Google One</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/37619/office-365">Office 365</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/13629/playstation">Playstation</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/43wJ5smERyVB/cursor-ai">Cursor Ai</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/111053/w">W</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/31085/heroku">Heroku</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/d5TXEddDPJaA/iqiyi">Iqiyi</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/sAv2Alwb8sdX/bitdefendervpn">Bitdefendervpn</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/kdBeV4Sb5p1l/surfshark">Surfshark</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/13682/cloudflare">CloudFlare</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/10836/apple-tv">Apple TV</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/EHtqS186HLz5/amazon-prime">Amazon Prime</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/35090/video">Video</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/EHtxO8ZmA602/music">Apple Music</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/36633/starbucks">Starbucks</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/I4WEmJjEaouN/uber-eats">Uber Eats</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/qUuAvjEvecnb/foodpanda">Foodpanda</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/mBkyWceUPlkM/shopee">Shopee</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/13657/dropbox">Dropbox</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/taZbVB7wKSaU/evernote">Evernote</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/nvtEH6DpqruC/notion">Notion</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/63696/xbox">Xbox</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/q3TCAFcF07P6/nintendo-switch-logo">Nintendo Switch Logo</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/22988/google-play">Google Play</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/37813/magazine">Magazine</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/2854/cloud">Cloud</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/13616/smartphone">Cell Phone</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/4M9I9T2WImF9/apple-store-app">Apple Store App</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/d4F0BzPBtI7I/bank-building">Bank Building</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/c2ILqembk03c/adobe-illustrator">Adobe Illustrator</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/2L0CwKPmkE4S/video-playlist">Video</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/bPVQ3brnJvoz/tesla-model-x">Tesla Model X</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/LvSvDm4aR9uU/charging-station">Charging Station</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/ViybK67S4rsu/chatbot">Robot</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/CRGwQcA4AsFT/database-administrator">Database</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/NDIMAFy35qo3/picture">Picture</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/jZfT0VhxuzRb/steering-wheel">Steering Wheel</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/12860/coffee-to-go">Coffee</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/80543/coffee-to-go">Coffee</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+                <div class="copyright-item">
+                    <a target="_blank" href="https://icons8.com/icon/erEevcUCwAMR/hamburger">Hamburger</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // 圖片版權宣告對話框功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('icon-copyright-modal');
+            const link = document.getElementById('icon-copyright-link');
+            const closeBtn = document.getElementById('icon-copyright-close');
+
+            // 開啟對話框
+            link.addEventListener('click', function() {
+                modal.style.display = 'block';
+            });
+
+            // 關閉對話框
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // 點擊背景關閉對話框
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // ESC鍵關閉對話框
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.style.display === 'block') {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
     {% block scripts_extra %}{% endblock %}
 </body>
 </html> 
